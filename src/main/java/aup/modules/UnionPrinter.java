@@ -1,17 +1,20 @@
 package aup.modules;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import aup.constants.LibConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import aup.interfaces.IMessage;
 import aup.interfaces.IRawDataSource;
 import aup.interfaces.ISender;
 
 public class UnionPrinter {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(UnionPrinter.class);
 
 	private IMessage messageModel;
 
@@ -39,44 +42,22 @@ public class UnionPrinter {
 
 	/// --- Business logics ---------
 
-	public void printCallback(boolean isParallel, boolean addId) throws IOException {
-		boolean tmpCreated = (new File(LibConstants.TMP_FOLDER)).mkdir();
-		if (!tmpCreated) {
-			throw new IOException(LibConstants.FOLDER_NOT_CREATED_MSG);
-		}
-
+	public void print(boolean isParallel) throws IOException {
+		LOGGER.info("Start printing with {} class. Print parallel: {}", messageModel.getClass(), isParallel);
+		
 		List<Map<String, String>> rawData = rawDataSource.getData();
+		LOGGER.info("Processing {} rows", rawData.size());
+		
 		Stream<Map<String, String>> stream = isParallel ? rawData.parallelStream() : rawData.stream();
 		stream.forEach(map -> {
-			IMessage message = messageModel.create(map);
-			sender.send(message);
+			try {
+				IMessage message = messageModel.create(map);
+				sender.send(message);
+			} catch (Exception e) {
+				e.getStackTrace();
+			}
 		});
-
-		deleteTmpAttachments();
-
-//		List<String> tmpAttachments = new ArrayList<>();
-//		String id = getId(addId);
-//		message.getDynamicAttachment().forEach(document -> {
-//			String fileName = id.concat(document.getFileName());
-//			document.write(fileName);
-//			tmpAttachments.add(fileName);
-//		});
-
-	}
-
-	/// --- Private methods ---------
-
-	private void deleteTmpAttachments() {
-		try {
-			File attachment = new File(LibConstants.TMP_FOLDER);
-			attachment.delete();
-		} catch (Exception e) {
-			e.getStackTrace();
-		}
-	}
-
-	public String getId(boolean add) {
-		long millis = System.currentTimeMillis() % 1000;
-		return add ? Long.toString(millis).concat("_") : "";
+		
+		LOGGER.info("Printing process completed!");
 	}
 }

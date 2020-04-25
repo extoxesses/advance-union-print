@@ -8,7 +8,7 @@ public interface IAttachmentModel {
 	
 	public void read(String filePath) throws Exception;
 	
-	public void write(String filePath);
+	public void write(String filePath)  throws Exception;
 		
 	public IAttachmentModel replace(Map<String, String> replacementMap);
 	

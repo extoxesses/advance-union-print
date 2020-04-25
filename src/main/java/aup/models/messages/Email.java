@@ -1,6 +1,7 @@
-package aup.models.network;
+package aup.models.messages;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -46,13 +47,19 @@ public class Email implements IMessage {
 		});
 
 		String receiver = replacementMap.getOrDefault(RawDataSourceConstants.RECEIVER_EMAIL_FIELD, "");
-		// TODO: gestire con gli optional
+		email.receiver = receiver;
 
-		String cc = replacementMap.getOrDefault(RawDataSourceConstants.CC_EMAIL_FIELD, "");
-		// TODO: gestire con gli optional
+		String[] cc = replacementMap.getOrDefault(RawDataSourceConstants.CC_EMAIL_FIELD, "")
+				.split(RawDataSourceConstants.MAIL_SPLITTER);
+		if (cc.length > 0 && !cc[0].equals("")) {
+			email.carbonCopy.addAll(Arrays.asList(cc));
+		}
 
-		String hidden = replacementMap.getOrDefault(RawDataSourceConstants.HIDDEN_EMAIL_FIELD, "");
-		// TODO: gestire con gli optional
+		String[] hidden = replacementMap.getOrDefault(RawDataSourceConstants.HIDDEN_EMAIL_FIELD, "")
+				.split(RawDataSourceConstants.MAIL_SPLITTER);
+		if (hidden.length > 0 && !hidden[0].equals("")) {
+			email.hiddenReceiver.addAll(Arrays.asList(hidden));
+		}
 
 		dynamicAttachment.forEach(document -> {
 			IAttachmentModel parsed = document.replace(replacementMap);

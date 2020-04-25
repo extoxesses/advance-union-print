@@ -7,6 +7,6 @@ public interface IRawDataSource {
 
 	public List<Map<String, String>> getData();
 	
-	public void setExtractor(IKeyExtractor extractor);
+	public void setKeysExtractor(IKeyExtractor extractor);
 	
 }

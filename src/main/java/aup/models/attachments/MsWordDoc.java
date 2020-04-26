@@ -21,6 +21,8 @@ public class MsWordDoc implements IAttachmentModel {
 	private boolean saveToPdf;
 
 	private XWPFDocument document;
+	
+	private String fileName;
 
 	public MsWordDoc() {
 		super();
@@ -63,7 +65,7 @@ public class MsWordDoc implements IAttachmentModel {
 
 	@Override
 	public String getFileName() {
-		return null;
+		return this.fileName;
 	}
 
 	/// --- Getter and setter methods ---------
@@ -74,6 +76,10 @@ public class MsWordDoc implements IAttachmentModel {
 
 	public void setDefaultValue(String defaultValue) {
 		this.defaultValue = defaultValue;
+	}
+
+	public void setFileName(String fileName) {
+		this.fileName = fileName;
 	}
 
 	public boolean saveToPdf() {

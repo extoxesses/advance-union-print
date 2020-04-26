@@ -11,7 +11,7 @@ import aup.interfaces.IMessage;
 
 public class Email implements IMessage {
 
-	private String object;
+	private String subject;
 
 	private String message;
 
@@ -28,10 +28,11 @@ public class Email implements IMessage {
 	/// --- Constructors ---------
 
 	public Email() {
-		this.object = ""; // TODO: gestire con gli optional
+		this.subject = ""; // TODO: gestire con gli optional
 		this.message = "";
 		this.receiver = "";
 		this.carbonCopy = new ArrayList<>();
+		this.hiddenReceiver = new ArrayList<>();
 		this.dynamicAttachment = new ArrayList<>();
 		this.staticAttachment = new ArrayList<>();
 	}
@@ -40,11 +41,11 @@ public class Email implements IMessage {
 	public IMessage create(Map<String, String> replacementMap) {
 		Email email = new Email();
 
-		replacementMap.keySet().parallelStream().forEach(key -> {
+		for(String key : replacementMap.keySet()) {
 			String value = replacementMap.getOrDefault(key, "");
-			email.object = object.replace(key, value);
-			email.message = message.replace(key, value);
-		});
+			email.subject = this.subject.replace(key, value);
+			email.message = this.message.replace(key, value);
+		}
 
 		String receiver = replacementMap.getOrDefault(RawDataSourceConstants.RECEIVER_EMAIL_FIELD, "");
 		email.receiver = receiver;
@@ -71,12 +72,12 @@ public class Email implements IMessage {
 
 	/// --- Getter and Setter methods ---------
 
-	public String getObject() {
-		return object;
+	public String getSubject() {
+		return subject;
 	}
 
-	public void setObject(String object) {
-		this.object = object;
+	public void setSubject(String subject) {
+		this.subject = subject;
 	}
 
 	public String getMessage() {

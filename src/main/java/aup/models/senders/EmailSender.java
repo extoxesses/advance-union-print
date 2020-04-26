@@ -36,8 +36,6 @@ public class EmailSender implements ISender<Email> {
 
 	private static final String PROTOCOL_PLACEHOLDER = "protocol";
 
-	private boolean isParallel;
-
 	private Properties properties;
 
 	private Session authSession;
@@ -51,27 +49,24 @@ public class EmailSender implements ISender<Email> {
 	public EmailSender(String protocol, String serverUrl, int serverPort) {
 		super();
 		this.protocol = protocol;
+		this.tmpFiles = new ArrayList<>();
 
 		properties = System.getProperties();
-		properties.put("mail.transport.protocol", protocol);
+		properties.setProperty("mail.transport.protocol", protocol);
 		properties.setProperty(getKey("mail.protocol.host"), serverUrl);
 		properties.setProperty(getKey("mail.protocol.port"), Integer.toString(serverPort));
 	}
 
 	/// --- Configuration methods ---------
 
-	public void isParallel(boolean isParallel) {
-		this.isParallel = isParallel;
-	}
-
 	public void setAuth(boolean anonymous, String tls, String auth) {
 		LOGGER.info("Setting anonymous properties");
-		properties.put(tls, Boolean.toString(!anonymous));
-		properties.put(auth, Boolean.toString(!anonymous));
+		properties.setProperty(tls, Boolean.toString(!anonymous));
+		properties.setProperty(auth, Boolean.toString(!anonymous));
 	}
 
 	public void setDebugger(boolean enable) {
-		properties.put("mail.debug", Boolean.toString(enable));
+		properties.setProperty("mail.debug", Boolean.toString(enable));
 	}
 
 	public void setProxy(String host, String port, String version) {
@@ -110,16 +105,21 @@ public class EmailSender implements ISender<Email> {
 
 	@Override
 	public void send(Email email) throws Exception {
-		createTmpFolder();
-		Message message = new MimeMessage(authSession);
-
-		message.setFrom(new InternetAddress(sender));
-		setRecipients(message, email);
-
-		message.setSubject(email.getObject());
-		message.setContent(createContent(email));
-
-		Transport.send(message);
+		try {
+			createTmpFolder();
+			Message message = new MimeMessage(authSession);
+			
+			message.setFrom(new InternetAddress(sender));
+			setRecipients(message, email);
+			
+			message.setSubject(email.getSubject());
+			message.setContent(createContent(email));
+			
+			Transport.send(message);			
+		} catch (Exception e) {
+			e.getStackTrace();
+		}
+		
 		deleteTmpFolder();
 	}
 
@@ -138,9 +138,8 @@ public class EmailSender implements ISender<Email> {
 		Multipart multipart = new MimeMultipart();
 		multipart.addBodyPart(messageBodyPart);
 
-		String id = isParallel ? Long.toString(System.currentTimeMillis()) : "";
 		for (IAttachmentModel doc : email.getDynamicAttachment()) {
-			String filePath = getAttachmentPath(doc.getFileName(), id);
+			String filePath = getAttachmentPath(doc.getFileName());
 			doc.write(filePath);
 			tmpFiles.add(filePath);
 		}
@@ -179,12 +178,8 @@ public class EmailSender implements ISender<Email> {
 		}
 	}
 
-	private String getAttachmentPath(String fileName, String id) {
-		String path = LibConstants.TMP_FOLDER.concat(File.pathSeparator);
-		if (!id.isEmpty() && !id.isBlank()) {
-			path = path.concat(id).concat("_");
-		}
-		return path.concat(fileName);
+	private String getAttachmentPath(String fileName) {
+		return LibConstants.TMP_FOLDER.concat("/").concat(fileName);
 	}
 
 	private String getKey(String key) {

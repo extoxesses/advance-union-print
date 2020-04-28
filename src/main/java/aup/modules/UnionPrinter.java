@@ -11,18 +11,25 @@ import aup.interfaces.IMessage;
 import aup.interfaces.IRawDataSource;
 import aup.interfaces.ISender;
 
-public class UnionPrinter<T extends IMessage> {
+public class UnionPrinter {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UnionPrinter.class);
 
 	private IMessage messageModel;
 
-	private ISender<T> sender;
+	private ISender sender;
 
 	private IRawDataSource rawDataSource;
 
 	public UnionPrinter() {
 		super();
+	}
+	
+	public UnionPrinter(IMessage messageModel, ISender sender, IRawDataSource rawDataSource) {
+		super();
+		this.messageModel = messageModel;
+		this.sender = sender;
+		this.rawDataSource = rawDataSource;
 	}
 
 	/// --- Setter ---------
@@ -31,7 +38,7 @@ public class UnionPrinter<T extends IMessage> {
 		this.messageModel = emailModel;
 	}
 
-	public void setEmailSender(ISender<T> emailSender) {
+	public void setEmailSender(ISender emailSender) {
 		this.sender = emailSender;
 	}
 
@@ -41,7 +48,6 @@ public class UnionPrinter<T extends IMessage> {
 
 	/// --- Business logics ---------
 
-	@SuppressWarnings("unchecked")
 	public void print() throws IOException {
 		LOGGER.info("Start printing with {} class", messageModel.getClass());
 
@@ -51,7 +57,7 @@ public class UnionPrinter<T extends IMessage> {
 		rawData.stream().forEach(map -> {
 			try {
 				IMessage message = messageModel.create(map);
-				sender.send((T) message);
+				sender.send(message);
 			} catch (Exception e) {
 				LOGGER.error("Error risen while trying to send an email: {}", e.getMessage());
 			}

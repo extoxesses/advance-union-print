@@ -16,6 +16,10 @@ import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions;
 
 public class MsWordDoc implements IAttachmentModel {
 
+	private static final String DOC_EXTENSION = ".docx";
+	
+	private static final String PDF_EXTENSION = ".pdf";
+	
 	private String defaultValue;
 
 	private boolean saveToPdf;
@@ -39,11 +43,13 @@ public class MsWordDoc implements IAttachmentModel {
 
 	@Override
 	public void write(String filePath) throws Exception {
-		final FileOutputStream stream = new FileOutputStream(filePath);
+		FileOutputStream stream;
 
 		if (!saveToPdf) {
+			stream = new FileOutputStream(filePath.concat(DOC_EXTENSION));
 			document.write(stream);
 		} else {
+			stream = new FileOutputStream(filePath.concat(PDF_EXTENSION));
 			PdfOptions options = PdfOptions.create();
 			PdfConverter.getInstance().convert(document, stream, options);
 		}

@@ -28,7 +28,7 @@ public class Email implements IMessage {
 	/// --- Constructors ---------
 
 	public Email() {
-		this.subject = ""; // TODO: gestire con gli optional
+		this.subject = "";
 		this.message = "";
 		this.receiver = "";
 		this.carbonCopy = new ArrayList<>();

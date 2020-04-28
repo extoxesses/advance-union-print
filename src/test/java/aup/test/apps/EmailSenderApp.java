@@ -1,4 +1,4 @@
-package aup.apps;
+package aup.test.apps;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import aup.interfaces.IAttachmentModel;
-import aup.interfaces.ISender;
 import aup.models.attachments.MsWordDoc;
 import aup.models.data.CsvRawData;
 import aup.models.messages.Email;
@@ -19,13 +18,19 @@ public class EmailSenderApp {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(EmailSenderApp.class);
 	
+	public static final String GMAIL_SMTP = "smtp.gmail.com";
+	
+	public static final String OUTLOOK_SMTP = "smtp-mail.outlook.com";
+	
 	public static void main (String[] args) {
 		try {
-			UnionPrinter<Email> printer = new UnionPrinter<>();
-			printer.setEmailSender(createSender(args[0], args[1]));
-			printer.setMessage(createEmail());
-			printer.setDataSource(createSource());
+			EmailSender sender = createSender(args[0], args[1], true);
+			Email email = createEmail();
+			CsvRawData data = createSource();
+			
+			UnionPrinter printer = new UnionPrinter(email, sender, data);
 			printer.print();
+			
 		} catch (Exception e) {
 			LOGGER.error("{}", e.getMessage());
 		}
@@ -52,12 +57,12 @@ public class EmailSenderApp {
 		return email;
 	}
 	
-	private static ISender<Email> createSender(String user, String password) {
-		// String gmailSmtp = "smtp.gmail.com";
-		String outlookSmtp = "smtp-mail.outlook.com";
-		EmailSender sender = new EmailSender("smpt", outlookSmtp, 587);
-		sender.setDebugger(true);
+	private static EmailSender createSender(String user, String password, boolean debug) {		
+		EmailSender sender = new EmailSender(OUTLOOK_SMTP, 587);
 		sender.authenticate(user, password);
+		sender.setAnonymous(false);
+		sender.setDebugger(debug);
+		
 		return sender;
 	}
 	

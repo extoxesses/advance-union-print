@@ -1,7 +1,7 @@
 package aup.interfaces;
 
-public interface ISender<T extends IMessage> {
+public interface ISender {
 
-	public void send(T message) throws Exception;
+	public void send(IMessage message) throws Exception;
 
 }

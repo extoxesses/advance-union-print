@@ -10,6 +10,7 @@ import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
+import javax.mail.Authenticator;
 import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.Multipart;
@@ -21,66 +22,65 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import aup.constants.EmailSenderConstants;
 import aup.constants.LibConstants;
 import aup.interfaces.IAttachmentModel;
+import aup.interfaces.IMessage;
 import aup.interfaces.ISender;
 import aup.models.messages.Email;
 
-public class EmailSender implements ISender<Email> {
+public class EmailSender implements ISender {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(EmailSender.class);
-
-	private static final String PROTOCOL_PLACEHOLDER = "protocol";
 
 	private Properties properties;
 
 	private Session authSession;
 
-	private String protocol;
-
 	private String sender;
 
 	private List<String> tmpFiles;
 
-	public EmailSender(String protocol, String serverUrl, int serverPort) {
+	public EmailSender(String serverUrl, int serverPort) {
 		super();
-		this.protocol = protocol;
 		this.tmpFiles = new ArrayList<>();
 
 		properties = System.getProperties();
-		properties.setProperty("mail.transport.protocol", protocol);
-		properties.setProperty(getKey("mail.protocol.host"), serverUrl);
-		properties.setProperty(getKey("mail.protocol.port"), Integer.toString(serverPort));
+		properties.setProperty("mail.transport.protocol", "smpt");
+		properties.setProperty("mail.smtp.host", serverUrl);
+		properties.setProperty("mail.smtp.port", Integer.toString(serverPort));
 	}
 
 	/// --- Configuration methods ---------
 
-	public void setAuth(boolean anonymous, String tls, String auth) {
+	public void setAnonymous(boolean anonymous) {
 		LOGGER.info("Setting anonymous properties");
-		properties.setProperty(tls, Boolean.toString(!anonymous));
-		properties.setProperty(auth, Boolean.toString(!anonymous));
+		properties.setProperty("mail.smtp.starttls.enable", Boolean.toString(!anonymous));
+		properties.setProperty("mail.smtp.auth", Boolean.toString(!anonymous));
 	}
 
 	public void setDebugger(boolean enable) {
+		LOGGER.info("Enabling debugger: {}", enable);
 		properties.setProperty("mail.debug", Boolean.toString(enable));
 	}
 
 	public void setProxy(String host, String port, String version) {
+		LOGGER.info("Enabling proxy {}:{}", host, port);
 		properties.setProperty("proxySet", "true");
 		properties.setProperty("socksProxyHost", host);
 		properties.setProperty("socksProxyPort", port);
 		properties.setProperty("socksProxyVersion", version);
 	}
 
-	public void setSsl(String fallback, String port, String socketPort) {
-		properties.setProperty(getKey("mail.protocol.socketFactory.class"), EmailSenderConstants.SSL_FACTORY);
-		properties.setProperty(getKey("mail.protocol.socketFactory.fallback"), fallback);
-		properties.setProperty(getKey("mail.protocol.port"), port);
-		properties.setProperty(getKey("mail.protocol.socketFactory.port"), socketPort);
+	public void setSsl(String fallback, String port) {
+		LOGGER.info("Enabling ssl {}:{}", fallback, port);
+		properties.setProperty("mail.smtp.socketFactory.class", EmailSenderConstants.SSL_FACTORY);
+		properties.setProperty("mail.smtp.socketFactory.fallback", fallback);
+		properties.setProperty("mail.smtp.socketFactory.port", port);
 	}
 
 	/// --- Provider method ---------
@@ -90,7 +90,7 @@ public class EmailSender implements ISender<Email> {
 
 		final String user = account;
 		final String pass = password;
-		authSession = Session.getInstance(properties, new javax.mail.Authenticator() {
+		authSession = Session.getInstance(properties, new Authenticator() {
 			@Override
 			protected PasswordAuthentication getPasswordAuthentication() {
 				return new PasswordAuthentication(user, pass);
@@ -104,22 +104,23 @@ public class EmailSender implements ISender<Email> {
 	}
 
 	@Override
-	public void send(Email email) throws Exception {
+	public void send(IMessage message) throws Exception {
+		Email email = (Email) message;
 		try {
 			createTmpFolder();
-			Message message = new MimeMessage(authSession);
-			
-			message.setFrom(new InternetAddress(sender));
-			setRecipients(message, email);
-			
-			message.setSubject(email.getSubject());
-			message.setContent(createContent(email));
-			
-			Transport.send(message);			
+			Message mailMessage = new MimeMessage(authSession);
+
+			mailMessage.setFrom(new InternetAddress(sender));
+			setRecipients(mailMessage, email);
+
+			mailMessage.setSubject(email.getSubject());
+			mailMessage.setContent(createContent(email));
+
+			Transport.send(mailMessage);
 		} catch (Exception e) {
-			e.getStackTrace();
+			LOGGER.error("Error risen while trying to send email: {}", e.getMessage());
 		}
-		
+
 		deleteTmpFolder();
 	}
 
@@ -138,6 +139,7 @@ public class EmailSender implements ISender<Email> {
 		Multipart multipart = new MimeMultipart();
 		multipart.addBodyPart(messageBodyPart);
 
+		// TODO: con l'email, ho dato la doppia opzione nel nome del file docx/pdf da gestire
 		for (IAttachmentModel doc : email.getDynamicAttachment()) {
 			String filePath = getAttachmentPath(doc.getFileName());
 			doc.write(filePath);
@@ -171,19 +173,15 @@ public class EmailSender implements ISender<Email> {
 	private void deleteTmpFolder() {
 		try {
 			File attachment = new File(LibConstants.TMP_FOLDER);
-			attachment.delete();
+			FileUtils.deleteDirectory(attachment);
 			tmpFiles = new ArrayList<>();
 		} catch (Exception e) {
-			e.getStackTrace();
+			LOGGER.error("Error risen while deliting temporary folder: {}", e.getMessage());
 		}
 	}
 
 	private String getAttachmentPath(String fileName) {
 		return LibConstants.TMP_FOLDER.concat("/").concat(fileName);
-	}
-
-	private String getKey(String key) {
-		return key.replace(PROTOCOL_PLACEHOLDER, protocol);
 	}
 
 	private void setRecipients(Message message, Email email) throws Exception {

@@ -11,6 +11,6 @@ public class RawDataSourceConstants {
 	public static final String MAIL_SPLITTER = ";";
 	
 	private RawDataSourceConstants () {
-		throw new IllegalAccessError();
+		throw new UnsupportedOperationException(LibConstants.PRIVATE_CONSTRUCT_MSG);
 	}
 }

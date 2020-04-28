@@ -9,7 +9,7 @@ public class LibConstants {
 	public static final String TMP_FOLDER = ".aup-tmp";
 	
 	private LibConstants() {
-		throw new IllegalAccessError(PRIVATE_CONSTRUCT_MSG);
+		throw new UnsupportedOperationException(PRIVATE_CONSTRUCT_MSG);
 	}
 	
 }

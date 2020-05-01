@@ -106,20 +106,17 @@ public class EmailSender implements ISender {
 	@Override
 	public void send(IMessage message) throws Exception {
 		Email email = (Email) message;
-		try {
-			createTmpFolder();
-			Message mailMessage = new MimeMessage(authSession);
 
-			mailMessage.setFrom(new InternetAddress(sender));
-			setRecipients(mailMessage, email);
+		createTmpFolder();
+		Message mailMessage = new MimeMessage(authSession);
 
-			mailMessage.setSubject(email.getSubject());
-			mailMessage.setContent(createContent(email));
+		mailMessage.setFrom(new InternetAddress(sender));
+		setRecipients(mailMessage, email);
 
-			Transport.send(mailMessage);
-		} catch (Exception e) {
-			LOGGER.error("Error risen while trying to send email: {}", e.getMessage());
-		}
+		mailMessage.setSubject(email.getSubject());
+		mailMessage.setContent(createContent(email));
+
+		Transport.send(mailMessage);
 
 		deleteTmpFolder();
 	}
@@ -170,14 +167,10 @@ public class EmailSender implements ISender {
 		}
 	}
 
-	private void deleteTmpFolder() {
-		try {
-			File attachment = new File(LibConstants.TMP_FOLDER);
-			FileUtils.deleteDirectory(attachment);
-			tmpFiles = new ArrayList<>();
-		} catch (Exception e) {
-			LOGGER.error("Error risen while deliting temporary folder: {}", e.getMessage());
-		}
+	private void deleteTmpFolder() throws IOException {
+		File attachment = new File(LibConstants.TMP_FOLDER);
+		FileUtils.deleteDirectory(attachment);
+		tmpFiles = new ArrayList<>();
 	}
 
 	private String getAttachmentPath(String fileName) {

@@ -1,6 +1,6 @@
 package aup.modules;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -19,17 +19,17 @@ public class UnionPrinter {
 
 	private ISender sender;
 
-	private IRawDataSource rawDataSource;
+	private List<Map<String, String>> printQueue;
 
 	public UnionPrinter() {
 		super();
 	}
-	
+
 	public UnionPrinter(IMessage messageModel, ISender sender, IRawDataSource rawDataSource) {
 		super();
 		this.messageModel = messageModel;
 		this.sender = sender;
-		this.rawDataSource = rawDataSource;
+		this.printQueue = new ArrayList<>(rawDataSource.getData());
 	}
 
 	/// --- Setter ---------
@@ -43,26 +43,42 @@ public class UnionPrinter {
 	}
 
 	public void setDataSource(IRawDataSource rawDataSource) {
-		this.rawDataSource = rawDataSource;
+		this.printQueue = new ArrayList<>(rawDataSource.getData());
+		LOGGER.info("Loaded {} messages", this.printQueue.size());
 	}
 
+	/// --- Getter ---------
+	
+	public List<Map<String,String>> getPrintQueue() {
+		return new ArrayList<>(this.printQueue);
+	}
+	
 	/// --- Business logics ---------
 
-	public void print() throws IOException {
-		LOGGER.info("Start printing with {} class", messageModel.getClass());
+	public void unloadQueue() {
+		this.printQueue = new ArrayList<>();
+	}
+	
+	public int print() {
+		LOGGER.info("Start printing {} messages using {} class", printQueue.size(), messageModel.getClass());
 
-		List<Map<String, String>> rawData = rawDataSource.getData();
-		LOGGER.info("Processing {} rows", rawData.size());
-
-		rawData.stream().forEach(map -> {
+		List<Map<String, String>> notPrintedElementes = new ArrayList<>();
+		printQueue.stream().forEach(map -> {
 			try {
 				IMessage message = messageModel.create(map);
 				sender.send(message);
 			} catch (Exception e) {
 				LOGGER.error("Error risen while trying to send an email: {}", e.getMessage());
+				notPrintedElementes.add(map);
 			}
 		});
 
-		LOGGER.info("Printing process completed!");
+		int printedElements = printQueue.size() - notPrintedElementes.size();
+		LOGGER.info("Printing process completed: printed {} elements over {}", printedElements, printQueue.size());
+		
+		printQueue = notPrintedElementes;
+		LOGGER.info("Queue updated!");
+		
+		return printedElements;
 	}
 }

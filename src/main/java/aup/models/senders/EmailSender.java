@@ -43,11 +43,8 @@ public class EmailSender implements ISender {
 
 	private String sender;
 
-	private List<String> tmpFiles;
-
 	public EmailSender(String serverUrl, int serverPort) {
 		super();
-		this.tmpFiles = new ArrayList<>();
 
 		properties = System.getProperties();
 		properties.setProperty("mail.transport.protocol", "smpt");
@@ -107,18 +104,23 @@ public class EmailSender implements ISender {
 	public void send(IMessage message) throws Exception {
 		Email email = (Email) message;
 
-		createTmpFolder();
-		Message mailMessage = new MimeMessage(authSession);
-
-		mailMessage.setFrom(new InternetAddress(sender));
-		setRecipients(mailMessage, email);
-
-		mailMessage.setSubject(email.getSubject());
-		mailMessage.setContent(createContent(email));
-
-		Transport.send(mailMessage);
-
-		deleteTmpFolder();
+		try {
+			createTmpFolder();
+			Message mailMessage = new MimeMessage(authSession);
+			
+			mailMessage.setFrom(new InternetAddress(sender));
+			setRecipients(mailMessage, email);
+			
+			mailMessage.setSubject(email.getSubject());
+			mailMessage.setContent(createContent(email));
+			
+			Transport.send(mailMessage);
+		} catch (Exception e) {
+			LOGGER.error("Error while sending email: {}", e.getMessage());
+			throw e;
+		} finally {
+			deleteTmpFolder();			
+		}
 	}
 
 	/// --- Private methods ---------
@@ -131,21 +133,18 @@ public class EmailSender implements ISender {
 
 	private Multipart createContent(Email email) throws Exception {
 		BodyPart messageBodyPart = new MimeBodyPart();
-		messageBodyPart.setText(email.getMessage());
+		messageBodyPart.setContent(email.getMessage(), EmailSenderConstants.CONTENT_TYPE);
 
 		Multipart multipart = new MimeMultipart();
 		multipart.addBodyPart(messageBodyPart);
 
-		// TODO: con l'email, ho dato la doppia opzione nel nome del file docx/pdf da gestire
-		for (IAttachmentModel doc : email.getDynamicAttachment()) {
-			String filePath = getAttachmentPath(doc.getFileName());
-			doc.write(filePath);
-			tmpFiles.add(filePath);
-		}
-
 		List<String> attachments = new ArrayList<>();
 		attachments.addAll(email.getStaticAttachment());
-		attachments.addAll(tmpFiles);
+		
+		for (IAttachmentModel doc : email.getDynamicAttachment()) {
+			String atcPath = doc.write(LibConstants.TMP_FOLDER);
+			attachments.add(atcPath);
+		}
 
 		for (String path : attachments) {
 			DataSource source = new FileDataSource(path);
@@ -170,11 +169,6 @@ public class EmailSender implements ISender {
 	private void deleteTmpFolder() throws IOException {
 		File attachment = new File(LibConstants.TMP_FOLDER);
 		FileUtils.deleteDirectory(attachment);
-		tmpFiles = new ArrayList<>();
-	}
-
-	private String getAttachmentPath(String fileName) {
-		return LibConstants.TMP_FOLDER.concat("/").concat(fileName);
 	}
 
 	private void setRecipients(Message message, Email email) throws Exception {

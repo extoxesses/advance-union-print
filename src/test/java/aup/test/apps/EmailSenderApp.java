@@ -41,7 +41,7 @@ public class EmailSenderApp {
 	private static Email createEmail() throws Exception {
 		Email email = new Email();
 		email.setSubject("Test object");
-		email.setMessage("Ciao {{name}} questo è un esempio di replace nel testo");
+		email.setMessage("<h3>Ciao <b>{{name}}</b>,</h3><br/>questo è un esempio di replace nel testo");
 		
 		List<String> staticAtch = new ArrayList<>();
 		staticAtch.add("src/test/resources/email/static.atc.txt");
@@ -51,6 +51,7 @@ public class EmailSenderApp {
 		MsWordDoc doc = new MsWordDoc();
 		doc.read("src/test/resources/email/dynamic.atc.docx");
 		doc.setFileName("Dynamic Attachment");
+		doc.saveToPdf(true);
 		dynamicAtch.add(doc);
 		email.setDynamicAttachment(dynamicAtch);
 		

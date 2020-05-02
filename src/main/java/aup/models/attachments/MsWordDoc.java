@@ -3,8 +3,10 @@ package aup.models.attachments;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
@@ -42,20 +44,25 @@ public class MsWordDoc implements IAttachmentModel {
 	}
 
 	@Override
-	public void write(String filePath) throws Exception {
-		FileOutputStream stream;
-
+	public String write(String filePath) throws Exception {
+		String path = Objects.isNull(filePath) ? "" : filePath;
+		String ext = saveToPdf ? PDF_EXTENSION : DOC_EXTENSION;
+		path = path.concat("/").concat(fileName).concat(ext);
+		
 		if (!saveToPdf) {
-			stream = new FileOutputStream(filePath.concat(DOC_EXTENSION));
+			FileOutputStream stream = new FileOutputStream(path);
 			document.write(stream);
+			stream.close();
 		} else {
-			stream = new FileOutputStream(filePath.concat(PDF_EXTENSION));
 			PdfOptions options = PdfOptions.create();
+			OutputStream stream = new FileOutputStream(new File(path));
 			PdfConverter.getInstance().convert(document, stream, options);
+			stream.close();
 		}
 
 		document.close();
-		stream.close();
+		
+		return path;
 	}
 
 	// TODO: updated con furbizie di renewal-policy
@@ -69,11 +76,6 @@ public class MsWordDoc implements IAttachmentModel {
 		return this;
 	}
 
-	@Override
-	public String getFileName() {
-		return this.fileName;
-	}
-
 	/// --- Getter and setter methods ---------
 
 	public String getDefaultValue() {
@@ -82,6 +84,10 @@ public class MsWordDoc implements IAttachmentModel {
 
 	public void setDefaultValue(String defaultValue) {
 		this.defaultValue = defaultValue;
+	}
+	
+	public String getFileName() {
+		return this.fileName;
 	}
 
 	public void setFileName(String fileName) {

@@ -137,8 +137,9 @@ public class EmailTest {
 		return new IAttachmentModel() {
 
 			@Override
-			public void write(String filePath) throws Exception {
+			public String write(String filePath) throws Exception {
 				// Empty method
+				return "";
 			}
 
 			@Override
@@ -149,11 +150,6 @@ public class EmailTest {
 			@Override
 			public void read(String filePath) throws Exception {
 				// Empty method
-			}
-
-			@Override
-			public String getFileName() {
-				return null;
 			}
 		};
 	}

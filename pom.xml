@@ -17,7 +17,8 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<junit.version>5.7.0-M1</junit.version>
 		<logback.version>1.2.3</logback.version>
-		<poi.version>4.1.2</poi.version>
+		<!-- Poi version 4.x.x not works properly with PDF conversion -->
+		<poi.version>3.17</poi.version>
 	</properties>
 
 	<build>

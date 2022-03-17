@@ -1,22 +1,23 @@
 package aup.models.attachments;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
+import aup.constants.LibConstants;
+import aup.interfaces.IAttachmentModel;
+import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter;
+import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions;
 import org.apache.poi.xwpf.usermodel.PositionInParagraph;
 import org.apache.poi.xwpf.usermodel.TextSegement;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
 
-import aup.interfaces.IAttachmentModel;
-import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter;
-import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class MsWordDoc implements IAttachmentModel {
 
@@ -34,19 +35,19 @@ public class MsWordDoc implements IAttachmentModel {
 
 	public MsWordDoc() {
 		super();
-		this.defaultValue = DEFAULT_VALUE;
+		this.defaultValue = LibConstants.DEFAULT_VALUE;
 	}
 
 	@Override
-	public void read(String filePath) throws Exception {
+	public void read(String filePath) throws IOException {
 		File file = new File(filePath);
-		FileInputStream instream = new FileInputStream(file.getAbsolutePath());
-		document = new XWPFDocument(instream);
-		instream.close();
+		FileInputStream inStream = new FileInputStream(file.getAbsolutePath());
+		document = new XWPFDocument(inStream);
+		inStream.close();
 	}
 
 	@Override
-	public String write(String filePath) throws Exception {
+	public String write(String filePath) throws IOException {
 		String path = Objects.isNull(filePath) ? "" : filePath;
 		String ext = saveToPdf ? PDF_EXTENSION : DOC_EXTENSION;
 		path = path.concat("/").concat(fileName).concat(ext);

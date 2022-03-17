@@ -108,35 +108,35 @@ public class Email implements IMessage {
 	}
 
 	public List<String> getCarbonCopy() {
-		return new ArrayList<String>(carbonCopy);
+		return new ArrayList<>(carbonCopy);
 	}
 
 	public void setCarbonCopy(List<String> carbonCopy) {
-		this.carbonCopy = new ArrayList<String>(carbonCopy);
+		this.carbonCopy = new ArrayList<>(carbonCopy);
 	}
 
 	public List<String> getHiddenReceiver() {
-		return new ArrayList<String>(hiddenReceiver);
+		return new ArrayList<>(hiddenReceiver);
 	}
 
 	public void setHiddenReceiver(List<String> hiddenReceiver) {
-		this.hiddenReceiver = new ArrayList<String>(hiddenReceiver);
+		this.hiddenReceiver = new ArrayList<>(hiddenReceiver);
 	}
 
 	public List<IAttachmentModel> getDynamicAttachment() {
-		return new ArrayList<IAttachmentModel>(dynamicAttachment);
+		return new ArrayList<>(dynamicAttachment);
 	}
 
 	public void setDynamicAttachment(List<IAttachmentModel> dynamicAttachment) {
-		this.dynamicAttachment = new ArrayList<IAttachmentModel>(dynamicAttachment);
+		this.dynamicAttachment = new ArrayList<>(dynamicAttachment);
 	}
 
 	public List<String> getStaticAttachment() {
-		return new ArrayList<String>(staticAttachment);
+		return new ArrayList<>(staticAttachment);
 	}
 
 	public void setStaticAttachment(List<String> staticAttachment) {
-		this.staticAttachment = new ArrayList<String>(staticAttachment);
+		this.staticAttachment = new ArrayList<>(staticAttachment);
 	}
 
 	/// --- Equals ---------

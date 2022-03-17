@@ -5,8 +5,8 @@ import java.util.Map;
 
 public interface IRawDataSource {
 
-	public List<Map<String, String>> getData();
+	List<Map<String, String>> getData();
 	
-	public void setKeysExtractor(IKeyExtractor extractor);
+	void setKeysExtractor(IKeyExtractor extractor);
 	
 }

@@ -5,8 +5,8 @@ import java.util.Map;
 
 public interface IMessage {
 	
-	public List<IAttachmentModel> getDynamicAttachment();
+	List<IAttachmentModel> getDynamicAttachment();
 
-	public IMessage create(Map<String, String> replacementMap);
+	IMessage create(Map<String, String> replacementMap);
 
 }

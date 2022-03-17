@@ -1,20 +1,20 @@
 package aup.models.data;
 
-import java.io.File;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.apache.commons.collections4.map.HashedMap;
-
 import aup.interfaces.IKeyExtractor;
 import aup.interfaces.IRawDataSource;
 import aup.models.extractors.SimpleKeysExtractor;
 import de.siegmar.fastcsv.reader.CsvContainer;
 import de.siegmar.fastcsv.reader.CsvReader;
 import de.siegmar.fastcsv.reader.CsvRow;
+import org.apache.commons.collections4.map.HashedMap;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class CsvRawData implements IRawDataSource {
 
@@ -40,7 +40,7 @@ public class CsvRawData implements IRawDataSource {
 		this.extractor = extractor;
 	}
 
-	public void loadFromFile(String filePath, Charset encoding) throws Exception {
+	public void loadFromFile(String filePath, Charset encoding) throws IOException {
 		CsvReader csvReader = new CsvReader();
 		csvReader.setSkipEmptyRows(true);
 		CsvContainer csv = csvReader.read(new File(filePath), encoding);
